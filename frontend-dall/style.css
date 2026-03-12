@@ -1,0 +1,694 @@
+/* ══════════════════════════════════════════════════════════════
+   دالّ — Modern AI Agent Interface
+   Gradient : Deep Green #006400 → Mint Green #00A676
+   Font     : IBM Plex Sans Arabic + Amiri  ·  Direction: RTL
+   ══════════════════════════════════════════════════════════════ */
+
+/* §0 — Reset ─────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --white: #ffffff;
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-hover: #fafafa;
+  --border: #e8e8e8;
+  --border-light: #f2f2f2;
+  --green-deep: #006400;
+  --green: #008a4a;
+  --green-mint: #00A676;
+  --green-light: #e6f7ef;
+  --green-pale: #f2fbf6;
+  --text: #1a1a1a;
+  --text-secondary: #555555;
+  --text-muted: #999999;
+  --text-placeholder: #c0c0c0;
+  --gradient: linear-gradient(135deg, #006400, #00A676);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.08);
+  --radius: 16px;
+  --radius-sm: 12px;
+  --radius-xs: 8px;
+  --radius-full: 50px;
+  --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --font: "IBM Plex Sans Arabic", sans-serif;
+  --font-quran: "Amiri", serif;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  direction: rtl;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* §1 — Layout Shell ──────────────────────────────────────── */
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--white);
+}
+
+/* §2 — Header — Dāl Brand ───────────────────────────────── */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.header-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dal-mark {
+  width: 32px;
+  height: 32px;
+}
+
+.dal-text {
+  font-size: 1.9rem;
+  font-weight: 700;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+
+.header-subtitle {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.3px;
+  margin-top: -2px;
+}
+
+/* §3 — Quran Verse ───────────────────────────────────────── */
+.quran-verse {
+  text-align: center;
+  padding: 20px 24px 16px;
+  max-width: 680px;
+  margin: 0 auto;
+  animation: fadeUp 0.6s ease both;
+  animation-delay: 0.1s;
+}
+
+.quran-text {
+  font-family: var(--font-quran);
+  font-size: 1.1rem;
+  color: rgba(0, 100, 0, 0.35);
+  line-height: 2.4;
+  letter-spacing: 0.3px;
+  direction: rtl;
+}
+
+.quran-ref {
+  font-family: var(--font);
+  font-size: 0.6rem;
+  color: rgba(0, 0, 0, 0.18);
+  margin-top: 6px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.quran-line {
+  width: 40px;
+  height: 1px;
+  background: rgba(0, 100, 0, 0.1);
+  margin: 10px auto 0;
+  border-radius: 2px;
+}
+
+/* §4 — Main Content ──────────────────────────────────────── */
+.main {
+  flex: 1;
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 78px 20px 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* §5 — Welcome Hero ──────────────────────────────────────── */
+.welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 12px 20px 14px;
+  animation: fadeUp 0.5s ease both;
+}
+
+.welcome-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  box-shadow: 0 6px 20px rgba(0, 100, 0, 0.18);
+}
+
+.welcome-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.welcome h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0;
+  line-height: 1.4;
+}
+
+.welcome h1 span {
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* §6 — About Section (compact hero) ─────────────────────── */
+.about-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 4px 0 20px;
+  animation: fadeUp 0.5s ease both;
+  animation-delay: 0.15s;
+}
+
+.about-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 16px;
+  text-align: center;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.about-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+  border-color: rgba(0, 166, 118, 0.2);
+}
+
+.about-icon {
+  font-size: 1.6rem;
+  margin-bottom: 10px;
+}
+
+.about-card h3 {
+  font-size: 0.88rem;
+  font-weight: 700;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 6px;
+}
+
+.about-card p {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  line-height: 1.85;
+  font-weight: 400;
+}
+
+/* §7 — Intent Box ────────────────────────────────────────── */
+.intent-box {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 26px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+  animation: fadeUp 0.4s ease both;
+  position: relative;
+  overflow: hidden;
+}
+
+.intent-box::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: var(--gradient);
+  border-radius: 3px 3px 0 0;
+}
+
+.intent-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--green);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 10px;
+}
+
+.intent-label svg {
+  width: 14px;
+  height: 14px;
+}
+
+.intent-text {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.85;
+}
+
+/* §8 — Chat Flow ─────────────────────────────────────────── */
+.chat-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.chat-msg {
+  display: flex;
+  gap: 12px;
+  animation: fadeUp 0.35s ease both;
+}
+
+.chat-msg.user {
+  flex-direction: row;
+  align-self: flex-start;
+  max-width: 85%;
+}
+
+.chat-msg.ai {
+  flex-direction: row;
+  align-self: flex-start;
+  max-width: 100%;
+}
+
+.chat-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.chat-msg.user .chat-avatar {
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+}
+
+.chat-msg.user .chat-avatar svg {
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+  stroke: var(--text-muted);
+}
+
+.chat-msg.ai .chat-avatar {
+  background: var(--gradient);
+  box-shadow: 0 2px 8px rgba(0, 100, 0, 0.18);
+}
+
+.chat-msg.ai .chat-avatar svg {
+  width: 14px;
+  height: 14px;
+  color: #fff;
+  stroke: #fff;
+}
+
+.chat-bubble {
+  line-height: 1.9;
+  font-size: 0.95rem;
+}
+
+.chat-msg.user .chat-bubble {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius) var(--radius) var(--radius) 6px;
+  padding: 13px 20px;
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+.chat-msg.ai .chat-bubble {
+  color: var(--text);
+  padding: 13px 6px;
+  font-weight: 400;
+}
+
+/* §9 — Typing Indicator ──────────────────────────────────── */
+.typing-dots {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.typing-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green-mint);
+  opacity: 0.3;
+  animation: bounce 1.4s ease-in-out infinite;
+}
+
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
+  30% { transform: translateY(-6px); opacity: 1; }
+}
+
+/* §10 — Platform Cards ───────────────────────────────────── */
+.platform-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.platform-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.platform-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--gradient);
+  border-radius: 0 3px 3px 0;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.platform-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: #ddd;
+}
+
+.platform-card:hover::after { opacity: 1; }
+
+.platform-card:nth-child(1) { animation: fadeUp 0.4s ease both; animation-delay: 0.05s; }
+.platform-card:nth-child(2) { animation: fadeUp 0.4s ease both; animation-delay: 0.13s; }
+.platform-card:nth-child(3) { animation: fadeUp 0.4s ease both; animation-delay: 0.21s; }
+.platform-card:nth-child(4) { animation: fadeUp 0.4s ease both; animation-delay: 0.29s; }
+.platform-card:nth-child(5) { animation: fadeUp 0.4s ease both; animation-delay: 0.37s; }
+
+.card-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.card-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--green-pale);
+  border: 1px solid rgba(0, 166, 118, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.card-name {
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.card-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.pill.green {
+  background: var(--green-light);
+  color: var(--green-deep);
+}
+
+.pill.grey {
+  background: #f5f5f5;
+  color: var(--text-secondary);
+}
+
+.card-services {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.svc-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.svc-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--green-mint);
+  margin-top: 8px;
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.card-cta {
+  display: block;
+  text-align: center;
+  padding: 12px;
+  border-radius: var(--radius-xs);
+  background: var(--gradient);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: var(--transition);
+  font-family: var(--font);
+  border: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+.card-cta:hover {
+  opacity: 0.9;
+  box-shadow: 0 4px 14px rgba(0, 100, 0, 0.2);
+  transform: translateY(-1px);
+}
+
+/* §11 — Input Bar ────────────────────────────────────────── */
+.input-dock {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 0 20px 22px;
+  background: linear-gradient(to top, var(--white) 65%, transparent);
+  pointer-events: none;
+}
+
+.input-bar {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 6px 6px 6px 24px;
+  border-radius: var(--radius-full);
+  background: var(--white);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  transition: var(--transition);
+  pointer-events: all;
+}
+
+.input-bar:focus-within {
+  border-color: var(--green-mint);
+  box-shadow: var(--shadow-md), 0 0 0 3px rgba(0, 166, 118, 0.08);
+}
+
+.input-field {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: 0.92rem;
+  font-family: var(--font);
+  direction: rtl;
+  padding: 10px 4px;
+  line-height: 1.6;
+}
+
+.input-field::placeholder {
+  color: var(--text-placeholder);
+  font-weight: 400;
+}
+
+.send-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  border: none;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+
+.send-btn svg {
+  width: 16px;
+  height: 16px;
+  transform: rotate(180deg);
+  stroke: #999;
+  transition: stroke var(--transition);
+}
+
+/* Active state — when user is typing */
+.send-btn.active {
+  background: var(--gradient);
+  box-shadow: 0 2px 8px rgba(0, 166, 118, 0.25);
+}
+
+.send-btn.active svg {
+  stroke: #fff;
+}
+
+.send-btn.active:hover {
+  opacity: 0.9;
+  transform: scale(1.06);
+  box-shadow: 0 4px 14px rgba(0, 166, 118, 0.3);
+}
+
+.send-btn:active { transform: scale(0.95); }
+
+.send-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* §12 — Animations ───────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* §13 — Responsive ───────────────────────────────────────── */
+@media (max-width: 768px) {
+  .main { padding: 74px 14px 175px; }
+  .welcome { padding: 8px 16px 10px; }
+  .welcome h1 { font-size: 1.3rem; }
+  .welcome-icon { width: 48px; height: 48px; border-radius: 14px; }
+  .intent-box { padding: 18px 20px; }
+  .chat-msg { max-width: 95% !important; }
+  .platform-card { padding: 18px 20px; }
+  .card-name { font-size: 1rem; }
+  .input-dock { padding: 0 12px 16px; }
+  .input-bar { padding: 5px 5px 5px 18px; }
+  .send-btn { width: 36px; height: 36px; }
+  .dal-mark { width: 26px; height: 26px; }
+  .dal-text { font-size: 1.5rem; }
+  .quran-text { font-size: 0.95rem; }
+  .quran-verse { padding: 16px 18px 12px; }
+  .about-section { grid-template-columns: 1fr; gap: 10px; }
+  .about-card { padding: 16px 14px; }
+}
+
+@media (max-width: 400px) {
+  .welcome h1 { font-size: 1.15rem; }
+  .dal-text { font-size: 1.3rem; }
+  .dal-mark { width: 22px; height: 22px; }
+  .quran-text { font-size: 0.85rem; line-height: 2.1; }
+}
