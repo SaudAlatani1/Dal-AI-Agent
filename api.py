@@ -3,8 +3,12 @@ FastAPI bridge — يربط الفرونتند مع LangGraph pipeline.
 شغّله بـ: uvicorn api:app --host 0.0.0.0 --port 8080
 """
 
+import logging
 import os
 from typing import Any
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -57,6 +61,7 @@ async def query(req: QueryRequest):
             "platforms": result.get("validated_platforms", []),
         }
     except Exception as e:
+        logger.error("Query error: %s", e, exc_info=True)
         err = str(e).lower()
         if "rate" in err or "429" in err or "limit" in err:
             msg = _RATE_LIMIT_MSG
@@ -99,6 +104,7 @@ async def chat(req: ChatRequest):
         return {"response": reply.content}
 
     except Exception as e:
+        logger.error("Chat error: %s", e, exc_info=True)
         err = str(e).lower()
         if "rate" in err or "429" in err or "limit" in err:
             return {"response": _RATE_LIMIT_MSG}
