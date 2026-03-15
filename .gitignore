@@ -1,0 +1,46 @@
+# Python virtual environment
+venv/
+.venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
+nul
+
+# Environment variables
+.env
+.env.local
+
+# Database
+*.db
+*.sqlite3
+chroma_db/
+
+# Distribution
+dist/
+build/
+*.egg-info/
+
+# Logs
+*.log
+
+# Other projects (only track Dal)
+AI Agent Using Langchain/
+makemore project/
+jadwalak_data.csv
+.claude/

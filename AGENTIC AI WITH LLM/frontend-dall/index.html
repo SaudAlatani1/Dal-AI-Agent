@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>دالّ — الدالّ على الخير كفاعله</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="/assets/style.css?v=2" />
+</head>
+<body>
+
+  <div class="app">
+    <!-- ═══ Header — Dāl Brand ═══ -->
+    <header class="header">
+      <div class="header-inner">
+        <span class="dal-text">دالّ</span>
+        <div class="header-subtitle">الدالّ على الخير كفاعله</div>
+      </div>
+      <div class="stats-bar" id="statsBar">
+        <div class="stat-item">
+          <span class="stat-number" id="statVisits">0</span>
+          <span class="stat-label">زوار دالّ</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number" id="statImpact">0</span>
+          <span class="stat-label">حالات تم توجيهها للمنصات الرسمية</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ═══ Main Content ═══ -->
+    <main class="main" id="mainArea">
+
+      <!-- Quran Verse -->
+      <div class="quran-verse" id="quranVerse">
+        <div class="quran-text">﴿ مَثَلُ الَّذِينَ يُنفِقُونَ أَمْوَالَهُمْ فِي سَبِيلِ اللَّهِ كَمَثَلِ حَبَّةٍ أَنبَتَتْ سَبْعَ سَنَابِلَ فِي كُلِّ سُنبُلَةٍ مِّائَةُ حَبَّةٍ ﴾</div>
+        <div class="quran-ref">سورة البقرة — آية ٢٦١</div>
+        <div class="quran-line"></div>
+      </div>
+
+      <!-- Welcome — Hero -->
+      <div class="welcome" id="welcomeScreen">
+        <h1>قولي وش بخاطرك من فعل خير.. <span>وبدلّك</span></h1>
+      </div>
+
+      <!-- About Section — compact hero area -->
+      <div class="about-section" id="aboutSection">
+        <div class="about-card">
+          <div class="about-icon">🎯</div>
+          <h3>وش هو دالّ؟</h3>
+          <p>مساعد ذكي يدلّك على المنصات الخيرية السعودية الرسمية والموثوقة.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-icon">🔍</div>
+          <h3>كيف يشتغل؟</h3>
+          <p>يفهم طلبك باللهجة السعودية ويبحث في أكثر من ٢٠ منصة رسمية ويعطيك أفضل الخيارات مباشرة.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-icon">✅</div>
+          <h3>ليش تثق فيه؟</h3>
+          <p>كل المنصات مرخّصة ومعتمدة من جهات حكومية سعودية — ما نعرض إلا المنصات الرسمية بنطاق .sa</p>
+        </div>
+      </div>
+
+      <!-- Link Checker — Floating Side Widget -->
+      <div class="link-checker-float" id="linkCheckerSection">
+        <div class="link-checker-header">
+          <span class="link-checker-icon">🔒</span>
+          <h3>تأكد من رابطك</h3>
+        </div>
+        <form class="link-checker-form" id="linkCheckerForm" autocomplete="off">
+          <input
+            type="text"
+            class="link-checker-input"
+            id="linkInput"
+            placeholder="الصق الرابط هنا.."
+            autocomplete="off"
+            dir="ltr"
+          />
+          <button type="submit" class="link-checker-btn" id="linkCheckBtn" disabled>تحقق</button>
+        </form>
+        <div class="link-result" id="linkResult"></div>
+      </div>
+
+      <!-- Intent Box — pinned after first query -->
+      <div class="intent-box" id="intentBox" style="display:none">
+        <div class="intent-label">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 16v-4"/>
+            <path d="M12 8h.01"/>
+          </svg>
+          النيّة
+        </div>
+        <div class="intent-text" id="intentText"></div>
+      </div>
+
+      <!-- Chat Flow -->
+      <div class="chat-flow" id="chatFlow"></div>
+
+    </main>
+
+    <!-- ═══ Input Bar ═══ -->
+    <div class="input-dock">
+      <form class="input-bar" id="inputForm" autocomplete="off">
+        <input
+          type="text"
+          class="input-field"
+          id="inputField"
+          placeholder="مثلاً: ودي أسدد فاتورة كهرباء لمحتاج.."
+          autocomplete="off"
+        />
+        <button type="submit" class="send-btn" id="sendBtn" disabled>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/assets/script.js?v=2"></script>
+</body>
+</html>
