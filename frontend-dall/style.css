@@ -1,4 +1,4 @@
-/* ══════════════════════════════════════════════════════════════
+ /* ══════════════════════════════════════════════════════════════
    دالّ — Modern AI Agent Interface
    Gradient : Deep Green #006400 → Mint Green #00A676
    Font     : IBM Plex Sans Arabic + Amiri  ·  Direction: RTL
@@ -118,6 +118,58 @@ body {
   color: var(--text-muted);
   letter-spacing: 0.3px;
   margin-top: -2px;
+}
+
+/* Stats Bar — inside header */
+.stats-bar {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.stat-number {
+  font-size: 0.95rem;
+  font-weight: 700;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  min-width: 20px;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.stat-number.counter-animate {
+  animation: counterPulse 1.8s ease-out;
+}
+
+@keyframes counterPulse {
+  0%   { transform: scale(1); }
+  15%  { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+.stat-label {
+  font-size: 0.62rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 22px;
+  background: var(--border);
 }
 
 /* §3 — Quran Verse ───────────────────────────────────────── */
@@ -257,6 +309,153 @@ body {
   color: var(--text-secondary);
   line-height: 1.85;
   font-weight: 400;
+}
+
+/* §6b — Link Checker Floating Widget ─────────────────────── */
+.link-checker-float {
+  position: fixed;
+  left: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 260px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow-md);
+  z-index: 90;
+  animation: fadeUp 0.5s ease both;
+  animation-delay: 0.3s;
+}
+
+.link-checker-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.link-checker-icon {
+  font-size: 1.1rem;
+}
+
+.link-checker-header h3 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.link-checker-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.link-checker-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  font-size: 0.82rem;
+  font-family: var(--font);
+  color: var(--text);
+  background: var(--surface-hover);
+  outline: none;
+  transition: var(--transition);
+  direction: ltr;
+  text-align: left;
+}
+
+.link-checker-input::placeholder {
+  color: var(--text-placeholder);
+  direction: rtl;
+  text-align: right;
+}
+
+.link-checker-input:focus {
+  border-color: var(--green-mint);
+  box-shadow: 0 0 0 3px rgba(0, 166, 118, 0.08);
+}
+
+.link-checker-btn {
+  width: 100%;
+  padding: 9px 16px;
+  border: none;
+  border-radius: var(--radius-xs);
+  background: var(--gradient);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.link-checker-btn:hover:not(:disabled) {
+  opacity: 0.9;
+  box-shadow: 0 4px 14px rgba(0, 100, 0, 0.2);
+}
+
+.link-checker-btn:disabled {
+  background: #e0e0e0;
+  cursor: not-allowed;
+}
+
+.link-result {
+  margin-top: 12px;
+}
+
+.link-result:empty {
+  margin-top: 0;
+}
+
+.link-result-card {
+  border-radius: var(--radius-xs);
+  padding: 14px;
+  text-align: center;
+  animation: fadeUp 0.35s ease both;
+}
+
+.link-result-card.safe {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.link-result-card.suspicious {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+
+.link-result-card.dangerous {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.link-result-verdict {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.link-result-card.safe .link-result-verdict { color: #15803d; }
+.link-result-card.suspicious .link-result-verdict { color: #b45309; }
+.link-result-card.dangerous .link-result-verdict { color: #dc2626; }
+
+.link-result-desc {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.link-result-url {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-family: monospace;
+  margin-top: 6px;
+  direction: ltr;
 }
 
 /* §7 — Intent Box ────────────────────────────────────────── */
@@ -561,6 +760,162 @@ body {
   transform: translateY(-1px);
 }
 
+/* §10b — Link Security Report ────────────────────────────── */
+.link-report {
+  flex: 1;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  box-shadow: var(--shadow);
+  animation: fadeUp 0.4s ease both;
+  overflow: hidden;
+  position: relative;
+}
+
+.link-report::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+}
+
+.link-report:has(.link-verdict.safe)::before { background: #22c55e; }
+.link-report:has(.link-verdict.suspicious)::before { background: #f59e0b; }
+.link-report:has(.link-verdict.dangerous)::before { background: #ef4444; }
+
+.link-report-header {
+  margin-bottom: 14px;
+}
+
+.report-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--green);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.report-title::before {
+  content: "🔒";
+  font-size: 0.85rem;
+}
+
+.report-url {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-family: monospace;
+  direction: ltr;
+  text-align: right;
+  word-break: break-all;
+}
+
+.link-verdict {
+  font-size: 1.2rem;
+  font-weight: 700;
+  padding: 12px 18px;
+  border-radius: var(--radius-xs);
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.link-verdict.safe {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.link-verdict.suspicious {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.link-verdict.dangerous {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.verdict-desc {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.85;
+  text-align: center;
+  margin-bottom: 18px;
+  padding: 0 10px;
+}
+
+.link-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.link-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-light);
+}
+
+.link-check.check-safe { background: #f8fdf9; }
+.link-check.check-warn { background: #fffdf5; border-color: #fde68a; }
+.link-check.check-danger { background: #fef8f8; border-color: #fecaca; }
+
+.check-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.check-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.check-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.check-detail {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.link-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: var(--radius-xs);
+  background: var(--green-pale);
+  border: 1px solid rgba(0, 166, 118, 0.1);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.action-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
 /* §11 — Input Bar ────────────────────────────────────────── */
 .input-dock {
   position: fixed;
@@ -667,7 +1022,12 @@ body {
 
 /* §13 — Responsive ───────────────────────────────────────── */
 @media (max-width: 768px) {
-  .main { padding: 74px 14px 175px; }
+  .main { padding: 100px 14px 175px; }
+  .header { height: auto; min-height: 64px; flex-wrap: wrap; padding: 8px 12px; gap: 4px; }
+  .stats-bar { position: static; transform: none; gap: 10px; justify-content: center; width: 100%; }
+  .stat-number { font-size: 0.8rem; }
+  .stat-label { font-size: 0.55rem; }
+  .stat-divider { height: 16px; }
   .welcome { padding: 8px 16px 10px; }
   .welcome h1 { font-size: 1.3rem; }
   .welcome-icon { width: 48px; height: 48px; border-radius: 14px; }
@@ -675,6 +1035,8 @@ body {
   .chat-msg { max-width: 95% !important; }
   .platform-card { padding: 18px 20px; }
   .card-name { font-size: 1rem; }
+  .link-report { padding: 18px 16px; }
+  .link-verdict { font-size: 1.05rem; padding: 10px 14px; }
   .input-dock { padding: 0 12px 16px; }
   .input-bar { padding: 5px 5px 5px 18px; }
   .send-btn { width: 36px; height: 36px; }
@@ -683,6 +1045,13 @@ body {
   .quran-text { font-size: 0.95rem; }
   .quran-verse { padding: 16px 18px 12px; }
   .about-section { grid-template-columns: 1fr; gap: 10px; }
+  .link-checker-float {
+    position: static;
+    transform: none;
+    width: 100%;
+    margin: 0 auto 16px;
+    max-width: 720px;
+  }
   .about-card { padding: 16px 14px; }
 }
 

@@ -1,4 +1,4 @@
-/* ══════════════════════════════════════════════════════════════
+ /* ══════════════════════════════════════════════════════════════
    دالّ — Light Mode Chat Logic
    Separates Intent Box (top) from Chat Flow (middle)
    Connects to FastAPI at /api/query and /api/chat
@@ -17,6 +17,12 @@ const quranVerse    = document.getElementById("quranVerse");
 const inputForm     = document.getElementById("inputForm");
 const inputField    = document.getElementById("inputField");
 const sendBtn       = document.getElementById("sendBtn");
+const statVisits    = document.getElementById("statVisits");
+const statImpact    = document.getElementById("statImpact");
+const linkCheckerForm = document.getElementById("linkCheckerForm");
+const linkInput     = document.getElementById("linkInput");
+const linkCheckBtn  = document.getElementById("linkCheckBtn");
+const linkResult    = document.getElementById("linkResult");
 
 // ─── State ───────────────────────────────────────────────────
 let isFirstQuery = true;
@@ -24,16 +30,33 @@ let isProcessing = false;
 let chatHistory  = [];
 let currentPlatforms = [];
 
+// ─── Clean Slate — Reset after every completed query ────────
+function resetForNewQuery() {
+  isFirstQuery = true;
+  chatHistory = [];
+  currentPlatforms = [];
+  inputField.value = "";
+  inputField.placeholder = "وش حاب تبحث عنه بعد؟ صف حالة أخرى هنا...";
+  sendBtn.disabled = true;
+  sendBtn.classList.remove("active");
+}
+
+function clearPreviousResults() {
+  chatFlow.innerHTML = "";
+  intentBox.style.display = "none";
+  intentText.textContent = "";
+}
+
 // ─── Icon Map ────────────────────────────────────────────────
 const ICON_MAP = {
-  "\u0637\u0628\u064A": "\uD83C\uDFE5", "\u0633\u0643\u0646\u064A": "\uD83C\uDFE0",
-  "\u0645\u0627\u0644\u064A": "\uD83D\uDCB0", "\u0632\u0643\u0627\u0629": "\uD83D\uDCB0",
-  "\u0635\u062F\u0642\u0629": "\uD83D\uDCB0", "\u062C\u0647\u062F\u064A": "\uD83E\uDD1D",
-  "\u062A\u0637\u0648\u0639": "\uD83E\uDD1D", "\u063A\u0630\u0627\u0626\u064A": "\uD83C\uDF7D\uFE0F",
-  "\u0625\u0637\u0639\u0627\u0645": "\uD83C\uDF7D\uFE0F", "\u0645\u064A\u0627\u0647": "\uD83D\uDCA7",
-  "\u0633\u0642\u064A\u0627": "\uD83D\uDCA7", "\u0643\u0641\u0627\u0644\u0629": "\uD83D\uDC66",
-  "\u0623\u064A\u062A\u0627\u0645": "\uD83D\uDC66", "\u0648\u0642\u0641": "\uD83D\uDD4C",
-  "\u0643\u0633\u0648\u0629": "\uD83D\uDC55", "\u062A\u0639\u0644\u064A\u0645\u064A": "\uD83D\uDCDA",
+  "طبي": "🏥", "سكني": "🏠", "مالي": "💰", "زكاة": "💰",
+  "صدقة": "💰", "جهدي": "🤝", "تطوع": "🤝", "غذائي": "🍽️",
+  "إطعام": "🍽️", "مياه": "💧", "سقيا": "💧", "كفالة": "👦",
+  "أيتام": "👦", "وقف": "🕌", "كسوة": "👕", "تعليمي": "📚",
+  "ديني": "🕌", "تقني": "💻", "عيني": "🎁", "اجتماعي": "🤲",
+  "تدريب": "🎓", "تمويل": "💳", "تمكين": "💪", "معنوي": "❤️",
+  "تأهيلي": "🏋️", "سداد ديون": "🔓", "معلوماتي": "ℹ️",
+  "منح دراسية": "🎓", "بحث علمي": "🔬", "ملابس": "👕", "أثاث": "🛋️",
 };
 
 // SVG templates
@@ -52,17 +75,71 @@ inputField.addEventListener("input", () => {
   sendBtn.classList.toggle("active", hasText);
 });
 
+// ─── URL Detection ───────────────────────────────────────────
+const URL_REGEX = /https?:\/\/[^\s<>"{}|\\^`\[\]]+|(?:www\.)[^\s<>"{}|\\^`\[\]]+|[a-zA-Z0-9][\w.-]*\.(?:sa|gov\.sa|com|net|org|info|xyz|online|ly|co|gl|gd|link|in)(?:\/[^\s]*)?/i;
+
+function extractUrl(text) {
+  const match = text.match(URL_REGEX);
+  if (!match) return null;
+  let url = match[0];
+  if (!url.startsWith("http")) url = "https://" + url;
+  return url;
+}
+
 // ─── Submit ──────────────────────────────────────────────────
 inputForm.addEventListener("submit", (e) => {
   e.preventDefault();
   const text = inputField.value.trim();
   if (!text || isProcessing) return;
+  handleFirstQuery(text);
+});
 
-  if (isFirstQuery) {
-    handleFirstQuery(text);
-  } else {
-    handleFollowUp(text);
+// ─── Link Checker (standalone) ──────────────────────────────
+linkInput.addEventListener("input", () => {
+  linkCheckBtn.disabled = linkInput.value.trim().length === 0;
+});
+
+linkCheckerForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const raw = linkInput.value.trim();
+  if (!raw) return;
+
+  let url = raw;
+  if (!url.startsWith("http")) url = "https://" + url;
+
+  linkCheckBtn.disabled = true;
+  linkCheckBtn.textContent = "جارٍ الفحص...";
+  linkResult.innerHTML = "";
+
+  try {
+    const res = await fetch(`${API_BASE}/api/analyze-link`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    let verdictClass = "safe";
+    if (data.verdict.includes("مشبوه")) verdictClass = "suspicious";
+    if (data.verdict.includes("خطير")) verdictClass = "dangerous";
+
+    linkResult.innerHTML = `
+      <div class="link-result-card ${verdictClass}">
+        <div class="link-result-verdict">${escapeHtml(data.verdict)}</div>
+        <div class="link-result-desc">${escapeHtml(data.verdict_desc || "")}</div>
+        <div class="link-result-url">${escapeHtml(data.hostname)}</div>
+      </div>`;
+  } catch {
+    linkResult.innerHTML = `
+      <div class="link-result-card dangerous">
+        <div class="link-result-verdict">خطأ</div>
+        <div class="link-result-desc">حدث خطأ في تحليل الرابط. حاول مرة أخرى.</div>
+      </div>`;
   }
+
+  linkCheckBtn.textContent = "تحقق";
+  linkCheckBtn.disabled = false;
 });
 
 
@@ -75,15 +152,15 @@ async function handleFirstQuery(text) {
   sendBtn.disabled = true;
   inputField.value = "";
 
+  // Clean Slate — clear any previous results before showing new ones
+  clearPreviousResults();
+
   // Hide welcome + quran + about, show intent
   welcomeScreen.style.display = "none";
   aboutSection.style.display = "none";
   if (quranVerse) quranVerse.style.display = "none";
   intentBox.style.display = "block";
   intentText.textContent = text;
-
-  // Change placeholder for follow-up
-  inputField.placeholder = "\u0627\u0633\u0623\u0644 \u0639\u0646 \u0627\u0644\u0645\u0646\u0635\u0629...";
 
   // Typing indicator in chat
   const typing = appendTyping();
@@ -106,61 +183,21 @@ async function handleFirstQuery(text) {
 
     // Platform cards
     if (data.platforms && data.platforms.length > 0) {
-      currentPlatforms = data.platforms;
       appendPlatformCards(data.platforms);
     }
 
-    chatHistory.push({ role: "user", content: text });
-    chatHistory.push({ role: "ai", content: data.response || "" });
+    // Close Context — reset state for clean slate (no data contamination)
+    resetForNewQuery();
   } catch (err) {
     typing.remove();
-    appendAIMessage("\u0639\u0630\u0631\u0627\u064B\u060C \u062D\u062F\u062B \u062E\u0637\u0623 \u0641\u064A \u0627\u0644\u0627\u062A\u0635\u0627\u0644. \u062A\u0623\u0643\u062F \u0623\u0646 \u0627\u0644\u0633\u064A\u0631\u0641\u0631 \u0634\u063A\u0627\u0644.");
+    appendAIMessage("عذراً، حدث خطأ في الاتصال. تأكد أن السيرفر شغال.");
     console.error(err);
+
+    // Reset even on error
+    resetForNewQuery();
   }
 
   isProcessing = false;
-  sendBtn.disabled = !inputField.value.trim();
-  scrollToBottom();
-}
-
-// ═══════════════════════════════════════════════════════════════
-// Follow-up — regular chat about the platforms
-// ═══════════════════════════════════════════════════════════════
-async function handleFollowUp(text) {
-  isProcessing = true;
-  sendBtn.disabled = true;
-  inputField.value = "";
-
-  appendUserMessage(text);
-  const typing = appendTyping();
-
-  chatHistory.push({ role: "user", content: text });
-
-  try {
-    const res = await fetch(`${API_BASE}/api/chat`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: text,
-        history: chatHistory,
-        platforms: currentPlatforms,
-        previous_response: chatHistory.find((m) => m.role === "ai")?.content || "",
-      }),
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-
-    typing.remove();
-    appendAIMessage(data.response || "");
-    chatHistory.push({ role: "ai", content: data.response || "" });
-  } catch (err) {
-    typing.remove();
-    appendAIMessage("\u0639\u0630\u0631\u0627\u064B\u060C \u062D\u062F\u062B \u062E\u0637\u0623. \u062D\u0627\u0648\u0644 \u0645\u0631\u0629 \u0623\u062E\u0631\u0649.");
-    console.error(err);
-  }
-
-  isProcessing = false;
-  sendBtn.disabled = !inputField.value.trim();
   scrollToBottom();
 }
 
@@ -247,8 +284,16 @@ function appendPlatformCards(platforms) {
       </div>
       <div class="card-services">${svcsHTML}</div>
       <a class="card-cta" href="${p.direct_url || "#"}" target="_blank" rel="noopener">
-        \u0627\u0646\u062A\u0642\u0644 \u0625\u0644\u0649 ${escapeHtml(p.name || "\u0627\u0644\u0645\u0646\u0635\u0629")} \u2190
+        انتقل إلى ${escapeHtml(p.name || "المنصة")} ←
       </a>`;
+
+    // Impact tracking — increment counter ONLY on CTA click
+    const cta = card.querySelector(".card-cta");
+    cta.addEventListener("click", (e) => {
+      e.preventDefault();
+      recordImpact();
+      window.open(cta.href, "_blank", "noopener");
+    });
 
     container.appendChild(card);
   });
@@ -282,4 +327,70 @@ function escapeHtml(str) {
   const div = document.createElement("div");
   div.textContent = str;
   return div.innerHTML;
+}
+
+// ─── Stats — Traffic & Impact Counters ──────────────────────
+
+function easeOutExpo(t) {
+  return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+}
+
+function animateCounter(el, target, delay = 0) {
+  const duration = 1800;
+  const start = parseInt(el.textContent) || 0;
+  if (start === target) return;
+  const diff = target - start;
+
+  setTimeout(() => {
+    el.classList.add("counter-animate");
+    const startTime = performance.now();
+    function step(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = easeOutExpo(progress);
+      el.textContent = Math.floor(start + diff * eased).toLocaleString("ar-SA");
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        el.classList.remove("counter-animate");
+      }
+    }
+    requestAnimationFrame(step);
+  }, delay);
+}
+
+async function loadStats() {
+  try {
+    const res = await fetch(`${API_BASE}/api/stats`);
+    if (!res.ok) return;
+    const data = await res.json();
+    animateCounter(statVisits, data.total_visits || 0, 300);
+    animateCounter(statImpact, data.actual_impact_count || 0, 700);
+  } catch { /* silent */ }
+}
+
+async function recordVisit() {
+  try {
+    const res = await fetch(`${API_BASE}/api/stats/visit`, { method: "POST" });
+    if (!res.ok) return;
+    const data = await res.json();
+    animateCounter(statVisits, data.total_visits || 0, 300);
+  } catch { /* silent */ }
+}
+
+async function recordImpact() {
+  try {
+    const res = await fetch(`${API_BASE}/api/stats/impact`, { method: "POST" });
+    if (!res.ok) return;
+    const data = await res.json();
+    animateCounter(statImpact, data.actual_impact_count || 0);
+  } catch { /* silent */ }
+}
+
+// ─── Session Start — record visit once per session ──────────
+if (!sessionStorage.getItem("dall_visited")) {
+  sessionStorage.setItem("dall_visited", "1");
+  recordVisit();
+} else {
+  loadStats();
 }
