@@ -3,9 +3,12 @@ FastAPI bridge — يربط الفرونتند مع LangGraph pipeline.
 شغّله بـ: uvicorn api:app --host 0.0.0.0 --port 8080
 """
 
+import json
 import logging
 import os
+import threading
 from typing import Any
+from urllib.parse import urlparse
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -27,6 +30,26 @@ app = FastAPI(title="دالّ API")
 
 _RATE_LIMIT_MSG = "نعتذر منك، الخدمة تواجه ضغطاً كبيراً حالياً. فضلاً حاول مجدداً بعد قليل."
 
+
+# ─── Stats Counter (Thread-Safe JSON File) ───────────────────
+_STATS_PATH = os.path.join(os.path.dirname(__file__), "data", "stats.json")
+_stats_lock = threading.Lock()
+
+
+def _load_stats() -> dict:
+    try:
+        with open(_STATS_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {"total_visits": 0, "actual_impact_count": 0}
+
+
+def _save_stats(stats: dict) -> None:
+    os.makedirs(os.path.dirname(_STATS_PATH), exist_ok=True)
+    with open(_STATS_PATH, "w", encoding="utf-8") as f:
+        json.dump(stats, f, ensure_ascii=False, indent=2)
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -47,6 +70,10 @@ class ChatRequest(BaseModel):
     previous_response: str = ""
 
 
+class LinkRequest(BaseModel):
+    url: str
+
+
 # ─── Routes ───────────────────────────────────────────────────
 @app.post("/api/query")
 async def query(req: QueryRequest):
@@ -59,6 +86,7 @@ async def query(req: QueryRequest):
             "response": result.get("final_response", ""),
             "category": result.get("category", ""),
             "platforms": result.get("validated_platforms", []),
+            "reset_context": True,
         }
     except Exception as e:
         logger.error("Query error: %s", e, exc_info=True)
@@ -109,6 +137,145 @@ async def chat(req: ChatRequest):
         if "rate" in err or "429" in err or "limit" in err:
             return {"response": _RATE_LIMIT_MSG}
         return {"response": "عذراً، حدث خطأ. حاول مرة أخرى."}
+
+
+# ─── Link Security Analyzer ──────────────────────────────
+_SHORTENED_DOMAINS = {
+    "bit.ly", "tinyurl.com", "t.co", "goo.gl", "ow.ly", "is.gd",
+    "buff.ly", "rebrand.ly", "short.link", "cutt.ly", "lnkd.in",
+}
+
+
+def _analyze_link(raw_url: str) -> dict[str, Any]:
+    """Analyze a URL for safety in donation/charity context."""
+    url = raw_url.strip()
+    if not url.startswith(("http://", "https://")):
+        url = "https://" + url
+
+    parsed = urlparse(url)
+    hostname = (parsed.hostname or "").lower()
+    scheme = parsed.scheme.lower()
+
+    checks: list[dict[str, str]] = []
+    danger_level = 0  # 0=safe, 1=suspicious, 2=dangerous
+
+    # 1) SSL Check
+    if scheme == "http":
+        checks.append({
+            "test": "التشفير (SSL)",
+            "result": "غير آمن",
+            "detail": "الرابط لا يستخدم تشفير HTTPS — بياناتك قد تكون مكشوفة",
+        })
+        danger_level = max(danger_level, 2)
+    else:
+        checks.append({
+            "test": "التشفير (SSL)",
+            "result": "آمن",
+            "detail": "الرابط يستخدم تشفير HTTPS",
+        })
+
+    # 2) Shortened URL Check
+    if hostname in _SHORTENED_DOMAINS:
+        checks.append({
+            "test": "رابط مختصر",
+            "result": "مشبوه",
+            "detail": "رابط مختصر يخفي الوجهة النهائية — لا تدخل بيانات بنكية",
+        })
+        danger_level = max(danger_level, 1)
+    else:
+        checks.append({
+            "test": "رابط مختصر",
+            "result": "آمن",
+            "detail": "الرابط كامل وواضح الوجهة",
+        })
+
+    # 3) TLD Check — .sa / .gov.sa = official Saudi
+    is_sa = hostname.endswith(".sa")
+    is_gov = hostname.endswith(".gov.sa")
+    if is_gov:
+        checks.append({
+            "test": "النطاق الوطني",
+            "result": "رسمي",
+            "detail": "نطاق حكومي سعودي (.gov.sa) — جهة رسمية موثوقة",
+        })
+    elif is_sa:
+        checks.append({
+            "test": "النطاق الوطني",
+            "result": "آمن",
+            "detail": "نطاق سعودي (.sa) — مسجّل لدى هيئة الاتصالات",
+        })
+    else:
+        tld = hostname.split(".")[-1] if "." in hostname else ""
+        if tld in ("com", "net", "org", "info", "xyz", "online"):
+            checks.append({
+                "test": "النطاق الوطني",
+                "result": "تحذير",
+                "detail": f"نطاق تجاري (.{tld}) وليس سعودي — الجهات الرسمية تستخدم .sa",
+            })
+            danger_level = max(danger_level, 1)
+        else:
+            checks.append({
+                "test": "النطاق الوطني",
+                "result": "غير معروف",
+                "detail": f"نطاق غير مألوف (.{tld}) — تحقق من المصدر",
+            })
+            danger_level = max(danger_level, 1)
+
+    # Final verdict
+    if danger_level == 0:
+        verdict = "آمن ✅"
+        verdict_desc = "هذا الرابط اجتاز جميع فحوصات الأمان — الموقع مشفّر ويستخدم نطاق سعودي رسمي موثوق."
+        action = "يمكنك الوثوق بهذا الرابط للتبرع"
+    elif danger_level == 1:
+        verdict = "مشبوه ⚠️"
+        verdict_desc = "هذا الرابط فيه نقاط تحتاج انتباهك — ممكن يكون رابط مختصر أو نطاق غير سعودي. لا يعني بالضرورة إنه خطير، لكن تحقق قبل ما تدخل بياناتك."
+        action = "تحقق من الرابط قبل إدخال أي بيانات شخصية أو بنكية"
+    else:
+        verdict = "خطير 🚫"
+        verdict_desc = "هذا الرابط ما يستخدم تشفير أو فيه علامات خطر واضحة — بياناتك البنكية ممكن تنكشف لو أدخلتها هنا."
+        action = "لا تدخل بيانات بطاقتك البنكية هنا — قد يكون تصيّد"
+
+    return {
+        "url": raw_url,
+        "hostname": hostname,
+        "verdict": verdict,
+        "verdict_desc": verdict_desc,
+        "action": action,
+        "checks": checks,
+    }
+
+
+@app.post("/api/analyze-link")
+async def analyze_link(req: LinkRequest):
+    """تحليل أمان رابط للتبرع."""
+    return _analyze_link(req.url)
+
+
+# ─── Stats Routes ────────────────────────────────────────────
+@app.get("/api/stats")
+async def get_stats():
+    """إرجاع العدادات الحالية."""
+    return _load_stats()
+
+
+@app.post("/api/stats/visit")
+async def record_visit():
+    """عداد الزيارات — يُستدعى مرة واحدة عند تحميل الصفحة."""
+    with _stats_lock:
+        stats = _load_stats()
+        stats["total_visits"] += 1
+        _save_stats(stats)
+    return {"total_visits": stats["total_visits"]}
+
+
+@app.post("/api/stats/impact")
+async def record_impact():
+    """عداد الأثر — يُستدعى فقط عند ضغط المستخدم على زر 'انتقل إلى المنصة'."""
+    with _stats_lock:
+        stats = _load_stats()
+        stats["actual_impact_count"] += 1
+        _save_stats(stats)
+    return {"actual_impact_count": stats["actual_impact_count"]}
 
 
 # ─── Serve Frontend ───────────────────────────────────────────
